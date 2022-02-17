@@ -249,26 +249,35 @@ class mod_dialogue_conversation_form extends mod_dialogue_message_form {
         $context  = $PAGE->context;
 
         $mform->addElement('header', 'openwithsection', get_string('openwith', 'dialogue'));
+        if (has_capability('moodle/course:viewparticipants', $context)) {
+            $options = [
+                'ajax' => 'mod_dialogue/form-user-selector',
+                'multiple' => true,
+                'courseid' => $COURSE->id,
+                'valuehtmlcallback' => function ($value) {
+                    global $OUTPUT;
 
-        $options = [
-            'ajax' => 'mod_dialogue/form-user-selector',
-            'multiple' => true,
-            'courseid' => $COURSE->id,
-            'valuehtmlcallback' => function($value) {
-                global $OUTPUT;
+                    $userfieldsapi = \core_user\fields::for_name();
+                    $allusernames = $userfieldsapi->get_sql('', false, '', '', false)->selects;
+                    $fields = 'id, ' . $allusernames;
+                    $user = \core_user::get_user($value, $fields);
+                    $useroptiondata = [
+                        'fullname' => fullname($user),
+                    ];
+                    return $OUTPUT->render_from_template('mod_dialogue/form-user-selector-suggestion', $useroptiondata);
+                }
+            ];
+            $mform->addElement('autocomplete', 'useridsselected', get_string('users'), [], $options);
+        }else{
+            $users = [];
+            $teachers = get_role_users(3, context_course::instance($COURSE->id));
 
-                $userfieldsapi = \core_user\fields::for_name();
-                $allusernames = $userfieldsapi->get_sql('', false, '', '', false)->selects;
-                $fields = 'id, ' . $allusernames;
-                $user = \core_user::get_user($value, $fields);
-                $useroptiondata = [
-                    'fullname' => fullname($user),
-                ];
-                return $OUTPUT->render_from_template('mod_dialogue/form-user-selector-suggestion', $useroptiondata);
+            foreach ($teachers as $u){
+                $users[$u->id]=fullname($u);
             }
-        ];
-        $mform->addElement('autocomplete', 'useridsselected', get_string('users'), [], $options);
 
+            $mform->addElement('select', 'useridsselected', get_string('users'), $users);
+        }
         // Bulk open rule section.
         if (has_capability('mod/dialogue:bulkopenrulecreate', $context)) {
             $groups = array(); // Use for form.
