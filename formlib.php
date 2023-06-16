@@ -40,9 +40,9 @@ class mod_dialogue_message_form extends moodleform {
     protected function definition() {
         global $PAGE;
 
-        $mform    = $this->_form;
-        $cm       = $PAGE->cm;
-        $context  = $PAGE->context;
+        $mform = $this->_form;
+        $cm = $PAGE->cm;
+        $context = $PAGE->context;
 
         $mform->addElement('editor', 'body', get_string('message', 'dialogue'), null, self::editor_options());
         $mform->setType('body', PARAM_RAW);
@@ -74,16 +74,16 @@ class mod_dialogue_message_form extends moodleform {
 
         $mform->addElement('header', 'actionssection', get_string('actions', 'dialogue'));
 
-        $actionbuttongroup = array();
+        $actionbuttongroup = [];
         $actionbuttongroup[] =& $mform->createElement('submit', 'send',
-            get_string('send', 'dialogue'), array('class' => 'send-button'));
+            get_string('send', 'dialogue'), ['class' => 'send-button']);
         $actionbuttongroup[] =& $mform->createElement('submit', 'save',
-            get_string('savedraft', 'dialogue'), array('class' => 'savedraft-button'));
+            get_string('savedraft', 'dialogue'), ['class' => 'savedraft-button']);
         $actionbuttongroup[] =& $mform->createElement('submit', 'cancel',
-            get_string('cancel'), array('class' => 'cancel-button'));
+            get_string('cancel'), ['class' => 'cancel-button']);
 
         $actionbuttongroup[] =& $mform->createElement('submit', 'trash',
-            get_string('trashdraft', 'dialogue'), array('class' => 'trashdraft-button pull-right'));
+            get_string('trashdraft', 'dialogue'), ['class' => 'trashdraft-button pull-right']);
         $mform->addGroup($actionbuttongroup, 'actionbuttongroup', '', ' ', false);
 
         $mform->setExpanded('actionssection', true);
@@ -128,10 +128,10 @@ class mod_dialogue_message_form extends moodleform {
      * @param array $selected
      * @return array
      */
-    public function update_selectgroup($name, $options, $selected=array()) {
-        $mform   = $this->_form;
+    public function update_selectgroup($name, $options, $selected = []) {
+        $mform = $this->_form;
         $element = $mform->getElement($name);
-        $element->_optGroups = array(); // Reset the optgroup array().
+        $element->_optGroups = []; // Reset the optgroup array().
         return $element->loadArrayOptGroups($options, $selected);
     }
 
@@ -144,14 +144,14 @@ class mod_dialogue_message_form extends moodleform {
         global $CFG, $COURSE, $PAGE;
 
         $maxbytes = get_user_max_upload_file_size($PAGE->context, $CFG->maxbytes, $COURSE->maxbytes);
-        return array(
+        return [
             'collapsed' => true,
             'maxfiles' => EDITOR_UNLIMITED_FILES,
             'maxbytes' => $maxbytes,
             'trusttext' => true,
             'accepted_types' => '*',
-            'return_types' => FILE_INTERNAL | FILE_EXTERNAL
-        );
+            'return_types' => FILE_INTERNAL | FILE_EXTERNAL,
+        ];
     }
 
     /**
@@ -163,13 +163,13 @@ class mod_dialogue_message_form extends moodleform {
         global $CFG, $COURSE, $PAGE;
         $maxbytes = get_user_max_upload_file_size($PAGE->context, $CFG->maxbytes,
             $COURSE->maxbytes, $PAGE->activityrecord->maxbytes);
-        return array(
+        return [
             'subdirs' => 0,
             'maxbytes' => $maxbytes,
             'maxfiles' => $PAGE->activityrecord->maxattachments,
             'accepted_types' => '*',
-            'return_types' => FILE_INTERNAL
-        );
+            'return_types' => FILE_INTERNAL,
+        ];
     }
 
     /**
@@ -193,7 +193,7 @@ class mod_dialogue_message_form extends moodleform {
      * @return null
      */
     public function get_submit_action() {
-        $submitactions = array('send', 'save', 'cancel', 'trash');
+        $submitactions = ['send', 'save', 'cancel', 'trash'];
         foreach ($submitactions as $submitaction) {
             if (optional_param($submitaction, false, PARAM_BOOL)) {
                 return $submitaction;
@@ -214,7 +214,7 @@ class mod_dialogue_reply_form extends mod_dialogue_message_form {
      * @throws dml_exception
      */
     protected function definition() {
-        $mform    = $this->_form;
+        $mform = $this->_form;
         $mform->addElement('header', 'messagesection', get_string('reply', 'dialogue'));
         $mform->setExpanded('messagesection', true);
         parent::definition();
@@ -244,18 +244,16 @@ class mod_dialogue_conversation_form extends mod_dialogue_message_form {
     protected function definition() {
         global $PAGE, $OUTPUT, $COURSE, $USER;
 
-        $mform    = $this->_form;
-        $cm       = $PAGE->cm;
-        $context  = $PAGE->context;
+        $mform = $this->_form;
+        $cm = $PAGE->cm;
+        $context = $PAGE->context;
 
         $mform->addElement('header', 'openwithsection', get_string('openwith', 'dialogue'));
-
-        useroptiondata);
         if (has_capability('moodle/course:viewparticipants', $context)) {
             $options = [
                 'ajax' => 'mod_dialogue/form-user-selector',
                 'multiple' => true,
-                'courseid' => $COURSE->id,
+                'cmid' => $cm->id,
                 'valuehtmlcallback' => function ($value) {
                     global $OUTPUT;
 
@@ -267,31 +265,34 @@ class mod_dialogue_conversation_form extends mod_dialogue_message_form {
                         'fullname' => fullname($user),
                     ];
                     return $OUTPUT->render_from_template('mod_dialogue/form-user-selector-suggestion', $useroptiondata);
-                }
+                },
             ];
             $mform->addElement('autocomplete', 'useridsselected', get_string('users'), [], $options);
-        }else{
+
+        } else {
             $users = [];
             $teachers = get_role_users(3, context_course::instance($COURSE->id));
 
-            foreach ($teachers as $u){
-                $users[$u->id]=fullname($u);
+            foreach ($teachers as $u) {
+                $users[$u->id] = fullname($u);
             }
 
             $mform->addElement('select', 'useridsselected', get_string('users'), $users);
         }
+
+
         // Bulk open rule section.
         if (has_capability('mod/dialogue:bulkopenrulecreate', $context)) {
-            $groups = array(); // Use for form.
-            $groups[''] = get_string('select').'...';
-            $groups['course-'.$PAGE->course->id] = get_string('allparticipants');
+            $groups = []; // Use for form.
+            $groups[''] = get_string('select') . '...';
+            $groups['course-' . $PAGE->course->id] = get_string('allparticipants');
             if (has_capability('moodle/site:accessallgroups', $context)) {
                 $allowedgroups = groups_get_all_groups($PAGE->course->id, 0);
             } else {
                 $allowedgroups = groups_get_all_groups($PAGE->course->id, $USER->id);
             }
             foreach ($allowedgroups as $allowedgroup) {
-                $groups['group-'.$allowedgroup->id] = $allowedgroup->name;
+                $groups['group-' . $allowedgroup->id] = $allowedgroup->name;
             }
             // Make sure have groups, possible group mode but no groups yada yada.
             if ($groups) {
@@ -312,7 +313,7 @@ class mod_dialogue_conversation_form extends mod_dialogue_message_form {
 
         $mform->addElement('header', 'messagesection', get_string('message', 'dialogue'));
 
-        $mform->addElement('text', 'subject', get_string('subject', 'dialogue'), array('size' => '100%'));
+        $mform->addElement('text', 'subject', get_string('subject', 'dialogue'), ['size' => '100%']);
         $mform->setType('subject', PARAM_TEXT);
         $mform->addRule('subject', null, 'required', null, 'client');
 
@@ -351,15 +352,15 @@ class mod_dialogue_conversation_form extends mod_dialogue_message_form {
      * @throws coding_exception
      */
     public function get_submitted_data() {
-        $mform   = $this->_form;
+        $mform = $this->_form;
         $data = parent::get_submitted_data();
 
         if (!empty($data->groupinformation)) {
-            $matches = array();
+            $matches = [];
             $subject = $data->groupinformation;
             $pattern = '/(course|group)-(\d.*)/';
             preg_match($pattern, $subject, $matches);
-            $bulkopenrule = array();
+            $bulkopenrule = [];
             $bulkopenrule['type'] = ($matches[1]) ? $matches[1] : '';
             $bulkopenrule['sourceid'] = ($matches[2]) ? $matches[2] : 0;
             if (!empty($data->includefuturemembers)) {
