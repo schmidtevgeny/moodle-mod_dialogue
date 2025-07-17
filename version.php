@@ -23,9 +23,9 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2024050200;
-$plugin->release   = 2024050200;
+$plugin->version   = 2025032000;
+$plugin->release   = 2025032000;
 $plugin->requires  = 2022112805;  // Requires 4.1 or higher.
 $plugin->component = 'mod_dialogue';    // Full name of the plugin (used for diagnostics).
 $plugin->maturity  = MATURITY_STABLE;    // This version's maturity level.
-$plugin->supported = [401, 404];
+$plugin->supported = [401, 405];

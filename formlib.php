@@ -46,6 +46,7 @@ class mod_dialogue_message_form extends moodleform {
 
         $mform->addElement('editor', 'body', get_string('message', 'dialogue'), null, self::editor_options());
         $mform->setType('body', PARAM_RAW);
+        $mform->addRule('body', null, 'required', null, 'client');
 
         // Maxattachments = 0 = No attachments at all.
         if (!get_config('dialogue', 'maxattachments') || !empty($PAGE->activityrecord->maxattachments)) {
